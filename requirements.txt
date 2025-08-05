@@ -4,5 +4,4 @@ langchain-chroma
 pandas
 fastapi
 pydantic
-glob
 gradio
