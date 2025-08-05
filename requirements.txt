@@ -7,3 +7,4 @@ fastapi
 pydantic
 langchain_core.documents
 glob
+gradio
