@@ -72,6 +72,5 @@ async def ask_ai(query: Query, x_api_key: str = Header(...)):
         print("❌ Error during response generation:", e)
         return {"answer": "Sorry, I had trouble generating the answer."}
 
-# 🖥️ Optional CLI testing
-if __name__ == "__main__":
+
     
