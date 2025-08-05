@@ -74,26 +74,4 @@ async def ask_ai(query: Query, x_api_key: str = Header(...)):
 
 # 🖥️ Optional CLI testing
 if __name__ == "__main__":
-    print("🔵 Welcome to Mentor AI!")
-    print("Ask anything about coding, digital skills, or job-related training.")
-    print("Type 'q' to quit.\n")
-
-    while True:
-        question = input("❓ Ask your question: ")
-
-        if question.lower().strip() == "q":
-            print("👋 Goodbye! Keep learning.")
-            break
-
-        try:
-            docs = retriever.invoke(question)
-            context = "\n\n".join([doc.page_content for doc in docs])
-        except Exception as e:
-            context = "No helpful information was found in the database."
-            print("⚠️ Retriever error:", e)
-
-        try:
-            result = chain.invoke({"context": context, "question": question})
-            print("\n🧠 AI Mentor Says:\n", result, "\n")
-        except Exception as e:
-            print("❌ Error during response generation:", e)
+    
