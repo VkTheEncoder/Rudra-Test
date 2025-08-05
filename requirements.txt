@@ -1,10 +1,8 @@
 langchain
 langchain-ollama
 langchain-chroma
-langchain_core.prompts
 pandas
 fastapi
 pydantic
-langchain_core.documents
 glob
 gradio
