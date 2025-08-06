@@ -4,44 +4,30 @@ import os
 import glob
 import pandas as pd
 
-from chromadb.config import Settings
 from langchain_ollama import OllamaEmbeddings
-from langchain.vectorstores import Chroma
+from langchain.vectorstores import FAISS
 from langchain.schema import Document
 
 # Constants
 CSV_FOLDER = "./csv_data"
-DB_LOCATION = "./chroma_learning_db"
-COLLECTION_NAME = "learning_materials"
+INDEX_DIR = "./faiss_index"
 
 def get_retriever():
-    # 1. find your CSVs
+    # 1️⃣ Find all CSV files
     csv_files = glob.glob(os.path.join(CSV_FOLDER, "*.csv"))
     if not csv_files:
         print("❌ No CSV files found in folder:", CSV_FOLDER)
         exit(1)
 
-    # 2. embeddings
+    # 2️⃣ Initialize your embedding model
     embeddings = OllamaEmbeddings(model="mxbai-embed-large")
 
-    # 3. Chroma settings: DuckDB+Parquet for persistence
-    client_settings = Settings(
-        chroma_db_impl="duckdb+parquet",
-        persist_directory=DB_LOCATION,
-    )
-
-    # 4. instantiate or load
-    is_first_time = not os.path.exists(DB_LOCATION)
-    vector_store = Chroma(
-        client_settings=client_settings,
-        collection_name=COLLECTION_NAME,
-        persist_directory=DB_LOCATION,
-        embedding_function=embeddings,
-    )
-
-    # 5. on first run, index all rows
-    if is_first_time:
-        print("📦 Creating new vector store and indexing CSV rows…")
+    # 3️⃣ Load or build the FAISS index
+    if os.path.exists(INDEX_DIR):
+        print("📂 Loading existing FAISS index...")
+        vector_store = FAISS.load_local(INDEX_DIR, embeddings)
+    else:
+        print("📦 Creating new FAISS index and indexing CSV rows…")
         documents, ids = [], []
         counter = 0
 
@@ -52,25 +38,23 @@ def get_retriever():
                 df.columns = df.columns.str.strip()
                 for i, row in df.iterrows():
                     text = " ".join(str(v) for v in row.values)
-                    meta = {
+                    metadata = {
                         "source_file": os.path.basename(path),
                         "row_index": i,
                         "columns": df.columns.tolist(),
                     }
-                    documents.append(Document(page_content=text, metadata=meta))
+                    documents.append(Document(page_content=text, metadata=metadata))
                     ids.append(str(counter))
                     counter += 1
             except Exception as e:
                 print(f"⚠️ Skipped {path}: {e}")
 
-        vector_store.add_documents(documents=documents, ids=ids)
-        vector_store.persist()
+        vector_store = FAISS.from_documents(documents, embeddings)
+        vector_store.save_local(INDEX_DIR)
         print(f"✅ Indexed {len(documents)} rows from {len(csv_files)} files.")
-    else:
-        print("📂 Loading existing vector store…")
 
-    # 6. return retriever
-    return vector_store.as_retriever(search_type="mmr", search_kwargs={"k": 10})
+    # 4️⃣ Return a retriever (top-10 hits)
+    return vector_store.as_retriever(search_kwargs={"k": 10})
 
-# for easy import elsewhere
+# Export for easy import
 retriever = get_retriever()
