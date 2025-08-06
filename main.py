@@ -93,6 +93,3 @@ if _name_ == "_main_":
             context = "No helpful information was found in the database."
             print("⚠ Retriever error:", e)
 
-        try:
-            result = chain.invoke({"context": context, "question": question})
-            print("\n🧠 AI Mentor Says:\n", result, "\n")
