@@ -97,4 +97,3 @@ if _name_ == "_main_":
             result = chain.invoke({"context": context, "question": question})
             print("\n🧠 AI Mentor Says:\n", result, "\n")
         except Exception as e:
-            print("❌ Error during response generation:", e)
